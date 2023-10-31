@@ -1,0 +1,7 @@
+plan2score.py
+excel/
+.history/
+.vscode/
+model_pth/*
+!model_pth/
+__pycache__/
