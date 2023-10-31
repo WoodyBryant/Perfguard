@@ -4,7 +4,6 @@ from get_data import *
 import ImportConfig
 config = ImportConfig.Config()
 
-
 def train():
 
     # preprocess training data
@@ -29,7 +28,6 @@ def train():
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
-
 
     # model saving
     get_data_.save(model,config.model_name,features1.shape[2])

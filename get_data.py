@@ -3,7 +3,7 @@ import joblib
 import os
 import numpy as np
 import torch
-from outer_module import feature,util
+from feature_generation import feature,util
 import ImportConfig
 from perfguard import *
 config = ImportConfig.Config()
@@ -135,8 +135,6 @@ class Get_Dataset():
             joblib.dump(self._feature_generator, f)
         with open(_input_feature_dim_path(path), "wb") as f:
             joblib.dump(_input_feature_dim, f)
-
-
 
 class Get_Dataset_Test():
     def __init__(self,plan_dict):

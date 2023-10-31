@@ -7,7 +7,6 @@ import ImportConfig
 config = ImportConfig.Config()
 
 def test():
-
     # merge pg_plan and lero_plan(or other plan chosen by the AI model)
     plan_dict = collections.defaultdict(list)
     with open(config.pg_plan_path,'r') as f:
@@ -54,7 +53,6 @@ def test():
             f.write(qid+config.SEP+json.dumps(perfguard_dict[qid])+'\n')
     print(sum(latency_list))
     
-
 if __name__ == '__main__':
     test()
 

@@ -14,7 +14,6 @@ OTHER_TYPES = ['Bitmap Index Scan']
 OP_TYPES = [UNKNOWN_OP_TYPE, "Hash", "Materialize", "Sort", "Aggregate", "Incremental Sort", "Limit"] \
     + SCAN_TYPES + JOIN_TYPES + OTHER_TYPES
 
-
 def json_str_to_json_obj(json_data):
     json_obj = json.loads(json_data)
     if type(json_obj) == list:
@@ -23,12 +22,6 @@ def json_str_to_json_obj(json_data):
         assert type(json_obj) == dict
     return json_obj
 
-"""
-X1和对应X2都来自于同一个查询的不同计划
-X1 = [p0,p0,p1,...],X2 = [p1,p2,p2,...]
-trees = X1+X2 = [p0,p0,p1,...,p1,p2,p2,...]
-pi = [{'Plan': {...}, 'Planning Time': 41.435, 'Triggers': [...], 'Execution Time': 39.693}]
-"""
 class FeatureGenerator():
 
     def __init__(self) -> None:
@@ -36,7 +29,6 @@ class FeatureGenerator():
         self.feature_parser = None
 
     def fit(self, trees):
-        # 将所有计划的对应变量都存入以下列表或集合
         exec_times = []
 
         startup_costs = []
@@ -58,13 +50,7 @@ class FeatureGenerator():
             if "Plans" in n:
                 for child in n["Plans"]:
                     recurse(child)
-        # 遍历每一个计划
         for tree in trees:
-            # json_obj = json_str_to_json_obj(tree)
-            #if "Execution Time" in json_obj:
-                #exec_times.append(float(json_obj["Execution Time"]))   
-            #recurse(json_obj["Plan"])
-            
             if "Execution Time" in tree:
                 exec_times.append(float(tree["Execution Time"]))
             if isinstance(tree,list):
@@ -72,17 +58,16 @@ class FeatureGenerator():
             else:
                 recurse(tree["Plan"])
 
-
         startup_costs = np.array(startup_costs)
         total_costs = np.array(total_costs)
         rows = np.array(rows)
         
-        # 对数化
+        # log
         startup_costs = np.log(startup_costs + 1)
         total_costs = np.log(total_costs + 1)
         rows = np.log(rows + 1)
 
-        # 求最大最小值
+        # min-max
         startup_costs_min = np.min(startup_costs)
         startup_costs_max = np.max(startup_costs)
         total_costs_min = np.min(total_costs)
@@ -92,7 +77,7 @@ class FeatureGenerator():
 
         print("RelType : ", rel_type)
 
-        # min-max标准化
+        # min-max
         if len(exec_times) > 0:
             exec_times = np.array(exec_times)
             exec_times = np.log(exec_times + 1)
@@ -110,26 +95,17 @@ class FeatureGenerator():
                 {"Startup Cost": startup_costs_max,
                  "Total Cost": total_costs_max, "Plan Rows": rows_max})
         self.feature_parser = AnalyzeJsonParser(self.normalizer, list(input_relations))
-    # tree = [{'Plan': {...}, 'Planning Time': 41.435, 'Triggers': [...], 'Execution Time': 39.693}]
      
     def transform(self, trees):
         local_features = []
         y = []
-        # 遍历每一个计划
         for tree in trees:
-            # json_obj = json_str_to_json_obj(tree)
-            # if type(json_obj["Plan"]) != dict:
-            #     json_obj["Plan"] = json.loads(json_obj["Plan"])
-            # local_feature = self.feature_parser.extract_feature(
-            #     json_obj["Plan"])
             if type(tree[0]["Plan"]) != dict:
                 tree[0]["Plan"] = json.loads(tree["Plan"])
             local_feature = self.feature_parser.extract_feature(
                 tree[0]["Plan"])               
             local_features.append(local_feature)
 
-            # if "Execution Time" in json_obj:
-            #     label = float(json_obj["Execution Time"])
             if "Execution Time" in tree[0]:
                 label = float(tree[0]["Execution Time"])     
                 if self.normalizer.contains("Execution Time"):
@@ -138,7 +114,6 @@ class FeatureGenerator():
             else:
                 y.append(None)
         return local_features, y
-
 
 class SampleEntity():
     def __init__(self, node_type: np.ndarray, startup_cost: float, total_cost: float,
@@ -166,7 +141,6 @@ class SampleEntity():
                                                                         self.input_tables, self.encoded_input_tables)
 
     def get_feature(self):
-        # return np.hstack((self.node_type, np.array([self.width, self.rows])))
         return np.hstack((self.node_type, np.array(self.encoded_input_tables), np.array([self.width, self.rows])))
 
     def get_left(self):
@@ -183,7 +157,6 @@ class SampleEntity():
         if self.right is not None:
             trees += self.right.subtrees()
         return trees
-
 
 class Normalizer():
     def __init__(self, mins: dict, maxs: dict) -> None:
@@ -205,16 +178,12 @@ class Normalizer():
     def contains(self, name):
         return name in self._mins and name in self._maxs
 
-
 class FeatureParser(metaclass=ABCMeta):
 
     @abstractmethod
     def extract_feature(self, json_data) -> SampleEntity:
         pass
-# the json file is created by "EXPLAIN (ANALYZE, VERBOSE, COSTS, BUFFERS, TIMING, SUMMARY, FORMAT JSON) ..."
 
-
-     
 class AnalyzeJsonParser(FeatureParser):
 
     def __init__(self, normalizer: Normalizer, input_relations: list) -> None:
@@ -240,8 +209,6 @@ class AnalyzeJsonParser(FeatureParser):
                                      None, None, 0, 0, [], self.encode_relation_names([]))
 
         node_type = op_to_one_hot(json_rel['Node Type'])
-        # startup_cost = self.normalizer.norm(float(json_rel['Startup Cost']), 'Startup Cost')
-        # total_cost = self.normalizer.norm(float(json_rel['Total Cost']), 'Total Cost')
         startup_cost = None
         total_cost = None
         rows = self.normalizer.norm(float(json_rel['Plan Rows']), 'Plan Rows')
@@ -271,7 +238,6 @@ class AnalyzeJsonParser(FeatureParser):
             else:
                 encode_arr[list(self.input_relations).index(name)] += 1
         return encode_arr
-
 
 def op_to_one_hot(op_name):
     arr = np.zeros(len(OP_TYPES))

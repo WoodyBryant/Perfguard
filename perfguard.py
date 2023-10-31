@@ -28,7 +28,6 @@ def preprocess_adj(A):
     final_result = np.stack(final_list,axis = 0)
     return final_result
 
-
 class GCNLayer(nn.Module):
     def __init__(self, in_dim, out_dim, acti=True):
         super(GCNLayer, self).__init__()
@@ -37,6 +36,7 @@ class GCNLayer(nn.Module):
             self.acti = nn.ReLU(inplace=True)
         else:
             self.acti = None
+
     def forward(self, F):
         output = self.linear(F)
         if not self.acti:
@@ -48,6 +48,7 @@ class Attention_Plus(nn.Module):
         super(Attention_Plus, self).__init__()
         self.linear1 = nn.Linear(embed_dim, k_dim)
         self.linear2 = nn.Linear(embed_dim, k_dim)
+
     def forward(self,plan1,plan2):
         # B*M*F，B*M‘*F
         W_s1 = self.linear1(plan1)
@@ -58,9 +59,8 @@ class Attention_Plus(nn.Module):
         Y = torch.bmm(E,plan2)
         X = (torch.mul(plan1,Y)+Y-plan1)/2.0
         return X,Y
-
+    
 class NeuralTensorNetwork(nn.Module):
-
     def __init__(self, embedding_size, tensor_dim, dropout = 0.5):
         super(NeuralTensorNetwork, self).__init__()
         self.tensor_dim = tensor_dim
@@ -106,7 +106,6 @@ class PerfGuard(nn.Module):
         self._feature_generator = None
 
     def forward(self, A1,A2,X1,X2):
-        
         A1 = torch.from_numpy(preprocess_adj(A1)).float().cuda(config.device)
         X1 = self.dropout(torch.from_numpy(X1).cuda(config.device))
         F1 = torch.bmm(A1.float(), X1.float())
@@ -125,7 +124,6 @@ class PerfGuard(nn.Module):
         Y = torch.mean(Y,axis = 1).view(Y.shape[0],1,-1)
         ntn_output = self.ntn(X,Y)
         final_output = torch.sigmoid(self.linear(ntn_output).view(-1))
-
         return final_output
     
             

@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 
-
 class TreeConvolutionError(Exception):
     pass
 
@@ -139,4 +138,3 @@ def prepare_trees(trees, transformer, left_child, right_child, cuda=False, devic
     flat_trees = [_flatten(x, transformer, left_child, right_child) for x in trees]
     flat_trees = _pad_and_combine(flat_trees)
     return flat_trees
-
