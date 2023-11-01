@@ -5,3 +5,4 @@ excel/
 model_pth/*
 !model_pth/
 __pycache__/
+data/perfguard_tpch.log.testing
