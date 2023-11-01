@@ -260,7 +260,3 @@ class Get_Dataset_Test():
 
     def right_child(self,x):
         return x.get_right()
-    
-
-            
-

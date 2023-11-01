@@ -5,7 +5,6 @@ import ImportConfig
 config = ImportConfig.Config()
 
 def train():
-
     # preprocess training data
     get_data_ = Get_Dataset(config.train_file)
     features1,features2 = get_data_.get_features()
@@ -34,11 +33,3 @@ def train():
 
 if __name__ == '__main__':
     train()
-
-
-
-
- 
-
-
-

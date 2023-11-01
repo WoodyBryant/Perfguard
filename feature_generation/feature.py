@@ -23,7 +23,6 @@ def json_str_to_json_obj(json_data):
     return json_obj
 
 class FeatureGenerator():
-
     def __init__(self) -> None:
         self.normalizer = None
         self.feature_parser = None

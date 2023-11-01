@@ -125,6 +125,3 @@ class PerfGuard(nn.Module):
         ntn_output = self.ntn(X,Y)
         final_output = torch.sigmoid(self.linear(ntn_output).view(-1))
         return final_output
-    
-            
-

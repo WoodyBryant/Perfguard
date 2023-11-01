@@ -10,9 +10,9 @@ class Config():
         # hyper parameter
         self.init_lr = 0.1
         self.epochs = 500
-        #the output dim of gcn
+        # the output dim of gcn
         self.embd_dim = 30
-        #the out put dim of ntn
+        # the out put dim of ntn
         self.tensor_dim = 10
         self.dropout = 0.1
         self.threshold = 0.5
